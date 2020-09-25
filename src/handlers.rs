@@ -8,10 +8,12 @@ use crate::models::Credentials;
 use crate::DbPool;
 use crate::{REGEX, SETTINGS};
 
+const CONFIG_ARGON_SECRET: &str = "secret";
+
 async fn hash(password: &str) -> Result<String, argonautica::Error> {
     let h = Hasher::default()
         .with_password(password)
-        .with_secret_key(SETTINGS.get_str("secret").unwrap())
+        .with_secret_key(SETTINGS.get_str(CONFIG_ARGON_SECRET).unwrap())
         .hash_non_blocking();
     compat::Compat01As03::new(h).await
 }
@@ -19,7 +21,7 @@ async fn verify(hash: &str, password: &str) -> Result<bool, argonautica::Error> 
     let v = Verifier::default()
         .with_hash(hash)
         .with_password(password)
-        .with_secret_key(SETTINGS.get_str("secret").unwrap())
+        .with_secret_key(SETTINGS.get_str(CONFIG_ARGON_SECRET).unwrap())
         .verify_non_blocking();
     compat::Compat01As03::new(v).await
 }

@@ -11,6 +11,12 @@ mod models;
 use handlers::{login, register};
 
 const POOL_SIZE: usize = 5;
+const CONFIG_RE: &str = "regex";
+const CONFIG_DB_HOST: &str = "host";
+const CONFIG_DB_DBNAME: &str = "dbname";
+const CONFIG_DB_USER: &str = "user";
+const CONFIG_DB_PASSWORD: &str = "password";
+const CONFIG_SOCKET: &str = "socket";
 
 type DbPool = deadpool_postgres::Pool;
 
@@ -24,7 +30,7 @@ lazy_static! {
     };
     static ref REGEX: Regex = Regex::new(
         &SETTINGS
-            .get_str("regex")
+            .get_str(CONFIG_RE)
             .expect("Could not retrieve password regex.")
     )
     .expect("Could not create password regex.");
@@ -32,10 +38,10 @@ lazy_static! {
 
 fn get_pool() -> DbPool {
     let mut pool_config = Config::new();
-    pool_config.host = SETTINGS.get_str("host").ok();
-    pool_config.dbname = SETTINGS.get_str("dbname").ok();
-    pool_config.user = SETTINGS.get_str("user").ok();
-    pool_config.password = SETTINGS.get_str("password").ok();
+    pool_config.host = SETTINGS.get_str(CONFIG_DB_HOST).ok();
+    pool_config.dbname = SETTINGS.get_str(CONFIG_DB_DBNAME).ok();
+    pool_config.user = SETTINGS.get_str(CONFIG_DB_USER).ok();
+    pool_config.password = SETTINGS.get_str(CONFIG_DB_PASSWORD).ok();
     pool_config.manager = Some(ManagerConfig {
         recycling_method: RecyclingMethod::Fast,
     });
@@ -54,7 +60,7 @@ async fn main() -> std::io::Result<()> {
             .service(login)
             .service(register)
     })
-    .bind(SETTINGS.get_str("socket").unwrap())?
+    .bind(SETTINGS.get_str(CONFIG_SOCKET).unwrap())?
     .run()
     .await
 }
